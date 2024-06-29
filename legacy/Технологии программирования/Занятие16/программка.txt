@@ -1,0 +1,81 @@
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <vector>
+#include <clocale> // Для функции setlocale
+
+using namespace std;
+
+struct Strana {
+    string name;
+    double life_expectancy;
+    int population;
+    int area;
+
+    // Конструктор для инициализации объекта Strana
+    Strana(const string& n, double life, int pop, int ar) : name(n), life_expectancy(life), population(pop), area(ar) {}
+
+    double density() const {
+        return population / static_cast<double>(area);
+    }
+};
+
+vector<Strana> readDataFromFile(const string& filename) {
+    vector<Strana> countries;
+    ifstream file(filename, ios::in | ios::binary); // Указываем режим ввода и двоичный режим для файла
+    if (!file) {
+        cerr << "Ошибка открытия файла " << filename << endl;
+        exit(1);
+    }
+    string name;
+    double life_expectancy;
+    int population, area;
+    while (file >> name >> life_expectancy >> population >> area) {
+        countries.push_back(Strana(name, life_expectancy, population, area));
+    }
+    file.close();
+    return countries;
+}
+
+Strana findCountryWithMaxLifeExpectancy(const vector<Strana>& countries) {
+    Strana maxLifeCountry = countries[0];
+    for (const auto& country : countries) {
+        if (country.life_expectancy > maxLifeCountry.life_expectancy) {
+            maxLifeCountry = country;
+        }
+    }
+    return maxLifeCountry;
+}
+
+void outputResults(const vector<Strana>& countries, const Strana& maxLifeCountry, const string& outputFilename) {
+    ofstream outputFile(outputFilename);
+    if (!outputFile) {
+        cerr << "Ошибка открытия файла " << outputFilename << " для записи." << endl;
+        exit(1);
+    }
+    outputFile << "Плотность населения:\n";
+    for (const auto& country : countries) {
+        outputFile << country.name << ": " << country.density() << " чел./км²\n";
+    }
+    outputFile << "\nСтрана с наибольшей продолжительностью жизни населения:\n";
+    outputFile << "Название: " << maxLifeCountry.name << endl;
+    outputFile << "Площадь: " << maxLifeCountry.area << " км²\n";
+    outputFile << "Население: " << maxLifeCountry.population << " чел.\n";
+    outputFile << "Продолжительность жизни: " << maxLifeCountry.life_expectancy << " лет\n";
+
+    cout << "Страна с наибольшей продолжительностью жизни населения:\n";
+    cout << "Название: " << maxLifeCountry.name << endl;
+    cout << "Площадь: " << maxLifeCountry.area << " км²\n";
+    cout << "Население: " << maxLifeCountry.population << " чел.\n";
+    cout << "Продолжительность жизни: " << maxLifeCountry.life_expectancy << " лет\n";
+
+    outputFile.close();
+}
+
+int main() {
+    setlocale(LC_ALL, "ru_RU.UTF-8"); // Устанавливаем локаль для правильной интерпретации русских символов
+    vector<Strana> countries = readDataFromFile("strana.txt");
+    Strana maxLifeCountry = findCountryWithMaxLifeExpectancy(countries);
+    outputResults(countries, maxLifeCountry, "Plotn.txt");
+    return 0;
+}
